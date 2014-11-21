@@ -1,12 +1,21 @@
-var artworks = [];
+var loadImage = require('./load-image');
 
-var url;
+var artworks = [];
+var apiOrigin;
 var hasMadeRequest;
 
 if ('production' === process.env.NODE_ENV) {
-  url = 'http://localhost:3049/artworks';
+  apiOrigin = 'https://command-art.herokuapp.com';
 } else {
-  url = 'http://localhost:3049/artworks';
+  apiOrigin = 'http://localhost:3049';
+}
+
+var url = apiOrigin+'/artworks';
+
+function preload (artworksToPreload) {
+  artworksToPreload.forEach(function (a) {
+    loadImage(a.imageUrl);
+  });
 }
 
 function createCORSRequest(method, url) {
@@ -34,6 +43,7 @@ function getArtworks() {
       if (data.artworks) {
         artworks = artworks.concat(data.artworks);
       }
+      console.log('request');
       hasMadeRequest = true;
     }
   };
@@ -47,12 +57,16 @@ function getArtworks() {
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   function respond () {
-    if (!hasMadeRequest) return setTimeout(respond, 400);
+    console.log('hasMadeRequest', hasMadeRequest, artworks);
+    if (!hasMadeRequest) {
+      return setTimeout(respond, 400);
+    }
 
     sendResponse({
-      artwork: artworks.pop()
+      artwork: artworks.shift()
     });
 
+    preload(artworks.slice(0,3));
     if (artworks.length < 5) getArtworks();
   }
 

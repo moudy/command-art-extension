@@ -8,6 +8,7 @@ DIST_PATH=dist
 VERSION=`cat manifest.json | grep "\"version\"" | tr -dc '[0-9.]'`;
 NAME=command-art-"$NODE_ENV"-"$VERSION"
 
+
 TARGET_DIR="$DIST_PATH"/"$NAME"
 
 rm -rf "$DIST_PATH"

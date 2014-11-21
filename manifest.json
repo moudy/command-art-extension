@@ -10,6 +10,7 @@
     "scripts": ["background.js"]
   },
   "permissions": [
-    "http://localhost:3049/"
+    "http://localhost:3049/",
+    "https://command-art.herokuapp.com/"
   ]
 }

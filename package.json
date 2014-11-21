@@ -1,0 +1,19 @@
+{
+  "name": "command-art-extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "background.js",
+  "dependencies": {
+    "browserify": "^6.3.2",
+    "envify": "^3.2.0",
+    "watchy": "^0.5.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "watchy -w ./ -i \"dist\" ./scripts/build",
+    "deploy": "NODE_ENV=production ./scripts/build && echo \"Upload new extension\""
+  },
+  "author": "",
+  "license": "MIT"
+}

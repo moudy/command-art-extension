@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Command Art",
+  "description": "Art in your new tab page.",
+  "version": "1.0",
+  "chrome_url_overrides" : {
+    "newtab": "page.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "http://localhost:3049/"
+  ]
+}

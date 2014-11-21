@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ -z "$NODE_ENV" ]; then NODE_ENV=development; fi
+
+NODE_BIN=./node_modules/.bin
+DIST_PATH=dist
+
+VERSION=`cat manifest.json | grep "\"version\"" | tr -dc '[0-9.]'`;
+NAME=command-art-"$NODE_ENV"-"$VERSION"
+
+TARGET_DIR="$DIST_PATH"/"$NAME"
+
+rm -rf "$DIST_PATH"
+mkdir -p "$TARGET_DIR"
+
+"$NODE_BIN"/browserify page.js -t envify --outfile "$TARGET_DIR"/page.js
+"$NODE_BIN"/browserify background.js -t envify --outfile "$TARGET_DIR"/background.js
+
+cp page.html "$TARGET_DIR"/page.html
+cp manifest.json "$TARGET_DIR"/manifest.json
+
+if [ "$NODE_ENV" == 'production' ]; then
+  zip -jr "$DIST_PATH"/"$NAME".zip "$TARGET_DIR"/*
+fi
+

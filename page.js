@@ -1,14 +1,17 @@
 var Velocity = require('velocity-animate/velocity');
 var loadImage = require('./load-image');
+var debug = require('./debug');
 
 function Page() {
   this.el = document.querySelector('.img');
 }
 
 Page.prototype.start = function() {
+  debug("chrome.runtime.sendMessage({action: getArtwork})");
   chrome.runtime.sendMessage({
     action: 'getArtwork'
   }, function(response) {
+    debug("Recieved response", response.artwork);
     this.addImage(response.artwork);
   }.bind(this));
 };
@@ -24,6 +27,8 @@ Page.prototype.enter = function() {
 };
 
 Page.prototype.addImage = function(artwork) {
+  debug("Adding artwork", artwork);
+
   if (!artwork || !artwork.imageUrl) return;
 
   var imageUrl = artwork.imageUrl;

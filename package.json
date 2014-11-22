@@ -11,9 +11,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "watchy -w ./ -i \"dist\" ./scripts/build",
-    "deploy": "NODE_ENV=production ./scripts/build && echo \"Upload new extension\""
+    "dev": "nodemon --exec \"bash\" --ignore dist ./scripts/build",
+    "deploy": "NODE_ENV=production ./scripts/build && echo \"Upload new extension to https://chrome.google.com/webstore/developer/edit/dajlekhnchmglnfkeggbapnomcdlbfkl\""
   },
-  "author": "",
+  "author": "Moudy",
   "license": "MIT"
 }

@@ -1,19 +1,27 @@
 var loadImage = require('./load-image');
+var debug = require('./debug');
 
+var RETRY_DELAY = 500;
+var PRELOAD_COUNT = 5;
+var MIN_ARTWORKS_COUNT = 10;
 var artworks = [];
 var apiOrigin;
 var hasMadeRequest;
 
 if ('production' === process.env.NODE_ENV) {
-  apiOrigin = 'https://command-art.herokuapp.com';
+  apiOrigin = 'http://www.command-art.com';
 } else {
   apiOrigin = 'http://localhost:3049';
 }
 
-var url = apiOrigin+'/artworks';
+debug("Starting with origin: " + apiOrigin);
 
-function preload (artworksToPreload) {
-  artworksToPreload.forEach(function (a) {
+var url = apiOrigin + '/artworks';
+
+
+function preload(artworksToPreload) {
+  artworksToPreload.forEach(function(a) {
+    debug("Preloading " + a.imageUrl);
     loadImage(a.imageUrl);
   });
 }
@@ -31,47 +39,73 @@ function createCORSRequest(method, url) {
   return xhr;
 }
 
-function getArtworks() {
+function getArtworks(done) {
   var request = createCORSRequest('GET', url);
   if (!request) {
     throw new Error('CORS not supported');
   }
+
+  var isDone;
 
   request.onload = function() {
     if (request.status >= 200 && request.status < 400) {
       var data = JSON.parse(request.responseText);
       if (data.artworks) {
         artworks = artworks.concat(data.artworks);
+        preload(artworks.slice(0, PRELOAD_COUNT - 1));
       }
-      console.log('request');
+      debug("Response: " + data.artworks);
       hasMadeRequest = true;
+    } else {
+      debug("Response Error: " + request.status);
+    }
+    if (done && !isDone) {
+      isDone = true;
+      done();
     }
   };
 
   request.onerror = function(error) {
-    console.log("Error", error);
+    debug("Response Error: " + error);
+    isDone = true;
+    if (done && !isDone) {
+      isDone = true;
+      done();
+    }
   };
 
   request.send();
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  function respond () {
-    console.log('hasMadeRequest', hasMadeRequest, artworks);
-    if (!hasMadeRequest) {
-      return setTimeout(respond, 400);
+  var isAsync;
+
+  function respond() {
+    if (artworks.length) {
+      debug("Has artworks: ", artworks);
+
+      var artwork = artworks.shift();
+      debug("Sending artwork response: ", artwork);
+      sendResponse({
+        artwork: artwork
+      });
+
+      preload(artworks.slice(0, PRELOAD_COUNT - 1));
+      if (artworks.length < MIN_ARTWORKS_COUNT) getArtworks();
+    } else if (!hasMadeRequest) {
+      debug("Has not made request, retrying in " + RETRY_DELAY + "ms");
+      isAsync = true;
+      setTimeout(respond, RETRY_DELAY);
+    } else {
+      isAsync = true;
+      getArtworks(respond);
     }
 
-    sendResponse({
-      artwork: artworks.shift()
-    });
-
-    preload(artworks.slice(0,3));
-    if (artworks.length < 5) getArtworks();
+    return isAsync;
   }
 
   if (request.action === 'getArtwork') {
-    respond();
+    return respond();
   }
 
 });
